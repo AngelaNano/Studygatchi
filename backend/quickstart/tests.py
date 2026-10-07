@@ -5,6 +5,8 @@ import pytest
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient
+from datetime import timedelta
+from django.utils import timezone
 
 from .models import StudyUser, Task
 
@@ -599,7 +601,11 @@ class TestTaskIsolation:
     ) -> None:
         """Task should be assigned to the authenticated user, not someone else."""
         api_client.force_authenticate(user=test_user)
-        data = {"name": "My Task", "reward": 50}
+        data = {
+            "name": "My Task",
+            "reward": 50,
+            "due_date": (timezone.now() + timedelta(days=365)).isoformat(),
+        }
         api_client.post("/api/create_task/", data, format="json")
 
         assert Task.objects.filter(name="My Task", user=test_user).exists()
